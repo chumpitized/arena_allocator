@@ -3,9 +3,14 @@
 
 //Ginger Bill implementation...
 
-static unsigned char *arena_buffer;
-static size_t arena_buffer_length;
-static size_t arena_offset;
+
+static unsigned char arena_buffer[256];
+static size_t arena_buffer_length = 256;
+static size_t arena_offset = 0;
+
+bool is_power_of_two(uintptr_t x) {
+	return (x & (x-1)) == 0;
+}
 
 void *arena_alloc(size_t size) {
 	// Check to see if the backing memory has space left
@@ -13,7 +18,7 @@ void *arena_alloc(size_t size) {
 		void *ptr = &arena_buffer[arena_offset];
 		arena_offset += size;
 
-		// Zero new memory by default
+		// Zero out new memory by default
 		memset(ptr, 0, size);
 		return ptr;
 	}
@@ -23,8 +28,14 @@ void *arena_alloc(size_t size) {
 
 int main() {
 
-	std::cout << "memory allocator" << std::endl;
-	std::cout << 2 * sizeof(void *) << std::endl;
+	void *ptr = arena_alloc(1);
+	//memset(ptr, 255, 1);
+	*(uint8_t *) ptr = 256;
+
+	uint8_t val = *(uint8_t *)ptr;
+
+	std::cout << "The Value: " << +val << std::endl;
+	std::cout << arena_offset << std::endl;
 	
 	return 1;
 }
