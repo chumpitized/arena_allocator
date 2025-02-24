@@ -94,7 +94,11 @@ void *arena_resize_align(Arena *a, void *old_memory, size_t old_size, size_t new
 		assert(0 && "Memory is out of bounds of the buffer in this arena");
 		return NULL;
 	}
+}
 
+void arena_free_all(Arena *a) {
+	a->curr_offset = 0;
+	a->prev_offset = 0;
 }
 
 // Because C doesn't have default parameters
