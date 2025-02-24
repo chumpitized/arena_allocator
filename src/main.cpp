@@ -117,13 +117,68 @@ void step_through_allocations(Arena *a, int &ap, int &alignment) {
 
 		if (ap == 1) {
 			void *ptr = arena_alloc_align(a, sizeof(int), alignment);
-			*(int *)ptr = 4;
+			*(int *)ptr = 255;
+		}
+
+		if (ap == 2) {
+			void *ptr = arena_alloc_align(a, sizeof(char), alignment);
+			*(char *)ptr = 'c';
+		}
+
+		if (ap == 3) {
+			void *ptr = arena_alloc_align(a, sizeof(char), alignment);
+			*(char *)ptr = 'd';
+		}
+
+		if (ap == 4) {
+			void *ptr = arena_alloc_align(a, sizeof(double), alignment);
+			*(double *)ptr = 5.0;
+		}
+
+		if (ap == 5) {
+			void *ptr = arena_alloc_align(a, sizeof(char), alignment);
+			*(char *)ptr = 'd';
 		}
 
 		ap++;
-
 	}
+}
 
+void draw_allocation_selector(int x, int y) {
+	Vector2 v1 = Vector2{x - 10, y};
+	Vector2 v2 = Vector2{x - 25, y - 10};
+	Vector2 v3 = Vector2{x - 25, y + 10};
+	
+	DrawTriangle(v1, v2, v3, WHITE);
+}
+
+void draw_allocations(int x, int y, int font_size, int ap) {
+	Color color;
+	const char* allocation;
+	for (int i = 0; i < 6; ++i) {
+		if (i < ap) color = GREEN;
+		else color = RED;
+
+		int y_offset 	= y + ((font_size + 10) * i);
+		int y_arrow		= y_offset + (font_size / 2);
+
+		if (i == 0) allocation = "push int 4";
+		if (i == 1) allocation = "push int 255";
+		if (i == 2) allocation = "push char c";
+		if (i == 3) allocation = "push char d";
+		if (i == 4) allocation = "push double 5.0";
+		if (i == 5) allocation = "push char d";
+
+		DrawText(allocation, x, y_offset, font_size, color);
+		if (i == ap) draw_allocation_selector(x, y_arrow);
+	}
+}
+
+void reset_allocations(Arena *a, int &ap) {
+	if (IsKeyPressed(KEY_R)) {
+		arena_free_all(a);
+		ap = 0;
+	}
 }
 
 int main() {
@@ -142,7 +197,7 @@ int main() {
 	int y_allocs 			= y_arena;
 
 	int allocation_pointer 	= 0;
-	int alignment 			= DEFAULT_ALIGNMENT;
+	int alignment 			= 8;
 
 	InitWindow(window_size, window_size, "Arena Allocator");
 
@@ -150,10 +205,15 @@ int main() {
 
 		//Input
 		step_through_allocations(&a, allocation_pointer, alignment);
+		reset_allocations(&a, allocation_pointer);
 
 		BeginDrawing();
+			ClearBackground(BLACK);
+
 			DrawText("Arena", x_arena, y_arena - 50, 40, WHITE);
 			DrawText("Allocations", x_allocs, y_allocs - 50, 40, WHITE);
+			draw_allocations(x_allocs, y_allocs, 30, allocation_pointer);
+			//draw_allocation_selector(x_allocs, y_allocs);
 
 			for (int i = 0; i < 256; ++i) {
 				float rec_size = 20;
@@ -168,7 +228,6 @@ int main() {
 				DrawRectangleLinesEx(mem, 2, BLACK);
 			}
 
-			ClearBackground(BLACK);
 		EndDrawing();
 
 	}
