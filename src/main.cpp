@@ -28,6 +28,7 @@ uintptr_t align_forward(uintptr_t ptr, size_t align) {
 	//0b00001000 & (0b00001111);
 	//=
 	//0b00001000;
+	//then we SUBTRACT this value from a to find the number to move forward by... line 38
 	//shift forward by 8 bits / 1 byte to align to address 16;
 	modulo = p & (a - 1);
 
