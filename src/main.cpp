@@ -3,8 +3,6 @@
 #include <cstring>
 #include <iostream>
 
-//Ginger Bill implementation...
-
 typedef struct Arena Arena;
 struct Arena {
 	unsigned char *buf;
@@ -213,7 +211,6 @@ int main() {
 			DrawText("Arena", x_arena, y_arena - 50, 40, WHITE);
 			DrawText("Allocations", x_allocs, y_allocs - 50, 40, WHITE);
 			draw_allocations(x_allocs, y_allocs, 30, allocation_pointer);
-			//draw_allocation_selector(x_allocs, y_allocs);
 
 			for (int i = 0; i < 256; ++i) {
 				float rec_size = 20;
