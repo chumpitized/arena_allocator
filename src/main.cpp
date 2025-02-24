@@ -62,7 +62,6 @@ void *arena_alloc_align(Arena *a, size_t size, size_t align) {
 #define DEFAULT_ALIGNMENT (2*sizeof(void *))
 #endif
 
-// Because C doesn't have default parameters
 void *arena_alloc(Arena *a, size_t size) {
 	return arena_alloc_align(a, size, DEFAULT_ALIGNMENT);
 }
@@ -74,18 +73,19 @@ void *arena_resize_align(Arena *a, void *old_memory, size_t old_size, size_t new
 
 	if (old_mem == NULL || old_size == 0) {
 		return arena_alloc_align(a, new_size, align);
-	} else if (a->buf <= old_mem && old_mem < a->buf + a->buf_len) {
+	} 
+	
+	if (a->buf <= old_mem && old_mem < a->buf + a->buf_len) {
 		if (a->buf + a->prev_offset == old_mem) {
-			//a->curr_offset = a->prev_offset + new_size;
 			if (new_size > old_size) {
 				memset(&a->buf[a->curr_offset], 0, new_size - old_size);
-				a->curr_offset = a->prev_offset + new_size;
 			}
+			a->curr_offset = a->prev_offset + new_size;
 			return old_memory;
 		} else {
 			void *new_memory = arena_alloc_align(a, new_size, align);
 			size_t copy_size = old_size < new_size ? old_size : new_size;
-			// Copy across old memory to the new memory
+
 			memmove(new_memory, old_memory, copy_size);
 			return new_memory;
 		}
