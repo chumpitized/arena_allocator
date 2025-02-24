@@ -107,24 +107,49 @@ void *arena_resize(Arena *a, void *old_memory, size_t old_size, size_t new_size)
 	return arena_resize_align(a, old_memory, old_size, new_size, DEFAULT_ALIGNMENT);
 }
 
+void step_through_allocations(Arena *a, int &ap, int &alignment) {
+	if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+
+		if (ap == 0) {
+			void *ptr = arena_alloc_align(a, sizeof(int), alignment);
+			*(int *)ptr = 4;
+		}
+
+		if (ap == 1) {
+			void *ptr = arena_alloc_align(a, sizeof(int), alignment);
+			*(int *)ptr = 4;
+		}
+
+		ap++;
+
+	}
+
+}
+
 int main() {
 	unsigned char backing_buffer[256];
 	Arena a = {0};
 	arena_init(&a, backing_buffer, 256);
 
-	int window_size = 1000;
-	int mem_size = 20;
-	int row_size = 16;
+	int window_size 		= 1000;
+	int mem_size 			= 20;
+	int row_size 			= 16;
 
-	int x_arena = (window_size - (row_size * mem_size)) / 4;
-	int y_arena = (window_size - (row_size * mem_size)) / 2;
+	int x_arena 			= (window_size - (row_size * mem_size)) / 4;
+	int y_arena 			= (window_size - (row_size * mem_size)) / 2;
 
-	int x_allocs = x_arena + 400;
-	int y_allocs = y_arena;
+	int x_allocs 			= x_arena + 400;
+	int y_allocs 			= y_arena;
+
+	int allocation_pointer 	= 0;
+	int alignment 			= DEFAULT_ALIGNMENT;
 
 	InitWindow(window_size, window_size, "Arena Allocator");
 
 	while (!WindowShouldClose()) {
+
+		//Input
+		step_through_allocations(&a, allocation_pointer, alignment);
 
 		BeginDrawing();
 			DrawText("Arena", x_arena, y_arena - 50, 40, WHITE);
