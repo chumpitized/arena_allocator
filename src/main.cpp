@@ -1,3 +1,4 @@
+#include "raylib.h"
 #include <assert.h>
 #include <cstring>
 #include <iostream>
@@ -13,10 +14,10 @@ struct Arena {
 };
 
 void arena_init(Arena *a, void *backing_buffer, size_t backing_buffer_length) {
-	a->buf = (unsigned char *)backing_buffer;
-	a->buf_len = backing_buffer_length;
-	a->curr_offset = 0;
-	a->prev_offset = 0;
+	a->buf			= (unsigned char *)backing_buffer;
+	a->buf_len 		= backing_buffer_length;
+	a->curr_offset 	= 0;
+	a->prev_offset 	= 0;
 }
 
 bool is_power_of_two(uintptr_t x) {
@@ -108,9 +109,36 @@ void *arena_resize(Arena *a, void *old_memory, size_t old_size, size_t new_size)
 
 int main() {
 
-	//unsigned char *backing_buffer[256];
-	//Arena *a = {0};
-	//arena_init(a, backing_buffer, 256);
+	unsigned char backing_buffer[256];
+	Arena a = {0};
+	arena_init(&a, backing_buffer, 256);
+	memset(backing_buffer, 0, 256);
+	void *ptr = arena_alloc(&a, 4);
+	*(int *)ptr = 25000000;
+
+	InitWindow(1000, 1000, "Arena Allocator");
+
+	while (!WindowShouldClose()) {
+
+		BeginDrawing();
+		
+		for (int i = 0; i < 256; ++i) {
+			float rec_size = 20;
+
+			float x = (i % 16) * rec_size;
+			float y = (i / 16) * rec_size;
+
+			Rectangle mem 	= Rectangle{x, y, rec_size, rec_size};
+			Color mem_color = i < a.curr_offset ? GREEN : RED;
+
+			DrawRectangleRec(mem, mem_color);
+			DrawRectangleLinesEx(mem, 2, BLACK);
+		}
+
+		ClearBackground(BLACK);
+		EndDrawing();
+
+	}
 	
 	return 1;
 }
