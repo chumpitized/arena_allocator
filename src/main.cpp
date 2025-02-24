@@ -12,6 +12,13 @@ struct Arena {
 	size_t curr_offset;
 };
 
+void arena_init(Arena *a, void *backing_buffer, size_t backing_buffer_length) {
+	a->buf = (unsigned char *)backing_buffer;
+	a->buf_len = backing_buffer_length;
+	a->curr_offset = 0;
+	a->prev_offset = 0;
+}
+
 bool is_power_of_two(uintptr_t x) {
 	return (x & (x-1)) == 0;
 }
@@ -51,19 +58,55 @@ void *arena_alloc_align(Arena *a, size_t size, size_t align) {
 	return NULL;
 }
 
+#ifndef DEFAULT_ALIGNMENT
+#define DEFAULT_ALIGNMENT (2*sizeof(void *))
+#endif
+
+// Because C doesn't have default parameters
+void *arena_alloc(Arena *a, size_t size) {
+	return arena_alloc_align(a, size, DEFAULT_ALIGNMENT);
+}
+
+void *arena_resize_align(Arena *a, void *old_memory, size_t old_size, size_t new_size, size_t align) {
+	unsigned char *old_mem = (unsigned char *)old_memory;
+
+	assert(is_power_of_two(align));
+
+	if (old_mem == NULL || old_size == 0) {
+		return arena_alloc_align(a, new_size, align);
+	} else if (a->buf <= old_mem && old_mem < a->buf + a->buf_len) {
+		if (a->buf + a->prev_offset == old_mem) {
+			//a->curr_offset = a->prev_offset + new_size;
+			if (new_size > old_size) {
+				memset(&a->buf[a->curr_offset], 0, new_size - old_size);
+				a->curr_offset = a->prev_offset + new_size;
+			}
+			return old_memory;
+		} else {
+			void *new_memory = arena_alloc_align(a, new_size, align);
+			size_t copy_size = old_size < new_size ? old_size : new_size;
+			// Copy across old memory to the new memory
+			memmove(new_memory, old_memory, copy_size);
+			return new_memory;
+		}
+
+	} else {
+		assert(0 && "Memory is out of bounds of the buffer in this arena");
+		return NULL;
+	}
+
+}
+
+// Because C doesn't have default parameters
+void *arena_resize(Arena *a, void *old_memory, size_t old_size, size_t new_size) {
+	return arena_resize_align(a, old_memory, old_size, new_size, DEFAULT_ALIGNMENT);
+}
+
 int main() {
 
-	//void *ptr = arena_alloc(1);
-	////memset(ptr, 255, 1);
-	////*(uint8_t *) ptr = 255;
-	//*(char *) ptr = 'c';
-
-	////uint8_t val = *(uint8_t *)ptr;
-	//char val = *(char *)ptr;
-
-	////std::cout << "The Value: " << +val << std::endl;
-	//std::cout << "The Value: " << val << std::endl;
-	//std::cout << arena_offset << std::endl;
+	//unsigned char *backing_buffer[256];
+	//Arena *a = {0};
+	//arena_init(a, backing_buffer, 256);
 	
 	return 1;
 }
