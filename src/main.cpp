@@ -3,6 +3,10 @@
 #include <cstring>
 #include <iostream>
 
+#ifndef DEFAULT_ALIGNMENT
+#define DEFAULT_ALIGNMENT (sizeof(void *))
+#endif
+
 typedef struct Arena Arena;
 struct Arena {
 	unsigned char *buf;
@@ -57,10 +61,6 @@ void *arena_alloc_align(Arena *a, size_t size, size_t align) {
 	return NULL;
 }
 
-#ifndef DEFAULT_ALIGNMENT
-#define DEFAULT_ALIGNMENT (2*sizeof(void *))
-#endif
-
 void *arena_alloc(Arena *a, size_t size) {
 	return arena_alloc_align(a, size, DEFAULT_ALIGNMENT);
 }
@@ -95,47 +95,64 @@ void *arena_resize_align(Arena *a, void *old_memory, size_t old_size, size_t new
 	}
 }
 
+void *arena_resize(Arena *a, void *old_memory, size_t old_size, size_t new_size) {
+	return arena_resize_align(a, old_memory, old_size, new_size, DEFAULT_ALIGNMENT);
+}
+
 void arena_free_all(Arena *a) {
 	a->curr_offset = 0;
 	a->prev_offset = 0;
-}
-
-// Because C doesn't have default parameters
-void *arena_resize(Arena *a, void *old_memory, size_t old_size, size_t new_size) {
-	return arena_resize_align(a, old_memory, old_size, new_size, DEFAULT_ALIGNMENT);
 }
 
 void step_through_allocations(Arena *a, int &ap, int &alignment) {
 	if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
 
 		if (ap == 0) {
-			void *ptr = arena_alloc_align(a, sizeof(int), alignment);
+			void *ptr = arena_alloc(a, sizeof(int));
 			*(int *)ptr = 4;
 		}
 
 		if (ap == 1) {
-			void *ptr = arena_alloc_align(a, sizeof(int), alignment);
+			void *ptr = arena_alloc(a, sizeof(int));
 			*(int *)ptr = 255;
 		}
 
 		if (ap == 2) {
-			void *ptr = arena_alloc_align(a, sizeof(char), alignment);
+			void *ptr = arena_alloc(a, sizeof(char));
 			*(char *)ptr = 'c';
 		}
 
 		if (ap == 3) {
-			void *ptr = arena_alloc_align(a, sizeof(char), alignment);
+			void *ptr = arena_alloc(a, sizeof(char));
 			*(char *)ptr = 'd';
 		}
 
 		if (ap == 4) {
-			void *ptr = arena_alloc_align(a, sizeof(double), alignment);
+			void *ptr = arena_alloc(a, sizeof(double));
 			*(double *)ptr = 5.0;
 		}
 
 		if (ap == 5) {
-			void *ptr = arena_alloc_align(a, sizeof(char), alignment);
+			void *ptr = arena_alloc(a, sizeof(char));
 			*(char *)ptr = 'd';
+		}
+
+		if (ap == 6) {
+			int size = 26;
+			char *array = (char *)arena_alloc(a, sizeof(char) * size);
+			for (int i = 0; i < size; ++i) {
+				array[i] = 97 + i;
+				std::cout << array[i] << std::endl;
+			}
+		}
+
+		if (ap == 7) {
+			int size = 30;
+			int *array = (int *)arena_alloc(a, sizeof(int) * size);
+			for (int i = 0; i < size; ++i) {
+				array[i] = i;
+				std::cout << array[i] << std::endl;
+			}
 		}
 
 		ap++;
@@ -153,7 +170,7 @@ void draw_allocation_selector(float x, float y) {
 void draw_allocations(int x, int y, int font_size, int ap) {
 	Color color;
 	const char* allocation;
-	for (int i = 0; i < 6; ++i) {
+	for (int i = 0; i < 8; ++i) {
 		if (i < ap) color = GREEN;
 		else color = RED;
 
@@ -166,6 +183,8 @@ void draw_allocations(int x, int y, int font_size, int ap) {
 		if (i == 3) allocation = "push char d";
 		if (i == 4) allocation = "push double 5.0";
 		if (i == 5) allocation = "push char d";
+		if (i == 6) allocation = "push char *array[26]";
+		if (i == 7) allocation = "push int *array[30]";
 
 		DrawText(allocation, x, y_offset, font_size, color);
 		if (i == ap) draw_allocation_selector(x, y_arrow);
@@ -210,6 +229,7 @@ int main() {
 
 			DrawText("Arena", x_arena, y_arena - 50, 40, WHITE);
 			DrawText("Allocations", x_allocs, y_allocs - 50, 40, WHITE);
+			DrawText("Free all memory with 'R'", x_arena, y_arena + (row_size * 20) + 30, 20, WHITE);
 			draw_allocations(x_allocs, y_allocs, 30, allocation_pointer);
 
 			for (int i = 0; i < 256; ++i) {
