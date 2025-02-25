@@ -142,8 +142,8 @@ void step_through_allocations(Arena *a, int &ap, int &alignment) {
 	}
 }
 
-void draw_allocation_selector(int x, int y) {
-	Vector2 v1 = Vector2{x - 10, y};
+void draw_allocation_selector(float x, float y) {
+	Vector2 v1 = Vector2{(float)x - 10, y};
 	Vector2 v2 = Vector2{x - 25, y - 10};
 	Vector2 v3 = Vector2{x - 25, y + 10};
 	
